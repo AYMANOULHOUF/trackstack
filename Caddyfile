@@ -1,0 +1,27 @@
+:80 {
+    encode gzip
+
+    # API + WebSocket
+    handle /v1/* {
+        reverse_proxy api-service:8080
+    }
+
+    # Protocol gateway
+    handle /proto/* {
+        reverse_proxy protocol-gateway:8081
+    }
+
+    # Everything else → React SPA
+    handle {
+        root * /srv/frontend
+        try_files {path} /index.html
+        file_server
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+}

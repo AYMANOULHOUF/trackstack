@@ -1,0 +1,78 @@
+version: "3.9"
+
+# Copy .env.example to .env and fill in JWT_SECRET + DOMAIN before running.
+# docker compose up -d
+
+services:
+
+  # ── Postgres + PostGIS ────────────────────────────────────────────────────
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"      
+    environment:
+      POSTGRES_DB:       trackproj
+      POSTGRES_USER:     trackproj
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data:z
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro,z   # auto-runs on first start
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trackproj"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── API service ───────────────────────────────────────────────────────────
+  api-service:
+    build:
+      context: ./backend/api-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://trackproj:${DB_PASSWORD}@db:5432/trackproj?sslmode=disable
+      JWT_SECRET:   ${JWT_SECRET:?set JWT_SECRET in .env}
+      ADMIN_EMAIL:    ${ADMIN_EMAIL:-admin@trackproj.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      LISTEN_ADDR:  :8080
+    expose:
+      - "8080"
+
+  # ── Protocol gateway ──────────────────────────────────────────────────────
+  protocol-gateway:
+    build:
+      context: ./backend/protocol-gateway
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api-service
+    environment:
+      API_SERVICE_URL: http://api-service:8080
+      LISTEN_ADDR:     :8081
+    expose:
+      - "8081"
+
+  # ── Caddy (TLS + reverse proxy + static dashboard) ───────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - api-service
+      - protocol-gateway
+    ports:
+      - "8080:80"
+      - "4433:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
+      - ./frontend/dist:/srv/frontend:ro,z     # React build output
+      - caddy_data:/data:z
+      - caddy_config:/config:z
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
