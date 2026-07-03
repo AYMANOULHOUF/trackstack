@@ -1,6 +1,6 @@
 import { useLiveDevices } from '../useDevices'
 import DeviceMap from '../components/DeviceMap'
-import { C, Card, Dot, STATUS_COLOR } from '../ui'
+import { C, Card, Dot, STATUS_COLOR, STATUS_LABEL } from '../ui'
 
 export default function OrgMapPage() {
   const devices = useLiveDevices()
@@ -22,7 +22,7 @@ export default function OrgMapPage() {
               <Dot color={STATUS_COLOR[d.status] ?? STATUS_COLOR.unknown} />
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</div>
-                <div style={{ fontSize: 12, color: C.muted }}>{d.status}{d.last_speed != null ? ` · ${Math.round(d.last_speed)} km/h` : ''}</div>
+                <div style={{ fontSize: 12, color: C.muted }}>{STATUS_LABEL[d.status] ?? d.status}{d.last_speed != null ? ` · ${Math.round(d.last_speed)} km/h` : ''}</div>
               </div>
             </div>
           ))}

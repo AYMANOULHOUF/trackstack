@@ -29,7 +29,7 @@ function Layout({ children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <nav style={S.nav}>
-        <span style={S.brand}>Track<span style={{ color: C.accent }}>Proj</span></span>
+        <span style={S.brand}>Track<span style={{ color: C.accent }}>Stack</span></span>
         {user?.role === 'admin' && <span style={S.badge}>ADMIN</span>}
         <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
           {links.map(([to, label]) => (

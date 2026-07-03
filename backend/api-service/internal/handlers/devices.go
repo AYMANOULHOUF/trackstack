@@ -65,12 +65,13 @@ type deviceOut struct {
 	LastLat                 *float64 `json:"last_lat,omitempty"`
 	LastLon                 *float64 `json:"last_lon,omitempty"`
 	Status                  string   `json:"status"`
+	TrackingActive          bool     `json:"tracking_active"`
 	Orgs                    []orgRef `json:"orgs"`
 	Assigned                bool     `json:"assigned"`
 }
 
 const deviceCols = `d.id, d.name, d.type, d.speed_limit_kmh, d.trip_stop_speed_kmh,
-	d.trip_stop_duration_seconds, d.offline_after_seconds, d.created_at,
+	d.trip_stop_duration_seconds, d.offline_after_seconds, d.tracking_active, d.created_at,
 	p.recorded_at, p.speed, ST_Y(p.geom::geometry), ST_X(p.geom::geometry)`
 
 // GET /v1/devices — admin sees every device (with org memberships + unassigned
@@ -106,17 +107,21 @@ func (s *Server) ListDevices(w http.ResponseWriter, r *http.Request) {
 		d := &deviceOut{Orgs: []orgRef{}}
 		var lastRecordedAt sql_NullTime
 		var lastSpeed, lastLat, lastLon sql_NullFloat64
+		var trackingActive bool
 		if err := rows.Scan(&d.ID, &d.Name, &d.Type, &d.SpeedLimitKmh, &d.TripStopSpeedKmh,
-			&d.TripStopDurationSeconds, &d.OfflineAfterSeconds, &d.CreatedAt,
+			&d.TripStopDurationSeconds, &d.OfflineAfterSeconds, &trackingActive, &d.CreatedAt,
 			&lastRecordedAt, &lastSpeed, &lastLat, &lastLon); err != nil {
 			writeErr(w, http.StatusInternalServerError, "scan error")
 			return
 		}
+		d.TrackingActive = trackingActive
 		d.Status = "unknown"
 		if lastRecordedAt.Valid {
 			ts := lastRecordedAt.Time.Format("2006-01-02T15:04:05Z07:00")
 			d.LastRecordedAt = &ts
-			d.Status = deriveStatus(lastRecordedAt, d.OfflineAfterSeconds, d.TripStopSpeedKmh, lastSpeed)
+			d.Status = deriveStatus(lastRecordedAt, d.OfflineAfterSeconds, d.TripStopSpeedKmh, lastSpeed, trackingActive)
+		} else if !trackingActive {
+			d.Status = "paused"
 		}
 		if lastSpeed.Valid {
 			d.LastSpeed = &lastSpeed.Float64

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api'
-import { C, Card, Btn, Field, Dot, Modal, STATUS_COLOR } from '../ui'
+import { C, Card, Btn, Field, Dot, Modal, STATUS_COLOR, STATUS_LABEL } from '../ui'
 
 export default function OrgDevicesPage() {
   const qc = useQueryClient()
@@ -35,7 +35,7 @@ export default function OrgDevicesPage() {
                 <div style={{ fontSize: 16, fontWeight: 700 }}>{d.name}</div>
               </div>
               <div style={{ color: C.muted, fontSize: 13, marginBottom: 14 }}>
-                {d.type} · {d.status}{d.last_speed != null ? ` · ${Math.round(d.last_speed)} km/h` : ''}
+                {d.type} · {STATUS_LABEL[d.status] ?? d.status}{d.last_speed != null ? ` · ${Math.round(d.last_speed)} km/h` : ''}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <Btn variant="ghost" onClick={() => setEditing({ id: d.id, name: d.name })}>Rename</Btn>

@@ -1,12 +1,24 @@
-// Shared floaty dark design system, matching the mobile app: dark surfaces,
-// soft shadows, rounded corners, purple accent.
 export const C = {
   bg: '#0b0e14', surface: '#151925', surface2: '#1c2130', border: '#252b3b',
   text: '#e6e9f0', muted: '#8b93a7', accent: '#7c6cff', accentSoft: 'rgba(124,108,255,.16)',
   danger: '#f87171', ok: '#34d399', warn: '#fbbf24', offline: '#6b7280',
 }
 
-export const STATUS_COLOR = { moving: C.ok, stopped: C.warn, offline: C.offline, unknown: C.offline }
+export const STATUS_COLOR = {
+  moving: '#34d399',
+  stopped: '#fbbf24',
+  paused: '#60a5fa',
+  offline: '#ef4444',
+  unknown: '#6b7280',
+}
+
+export const STATUS_LABEL = {
+  moving: 'Moving',
+  stopped: 'Stationary',
+  paused: 'Tracking off',
+  offline: 'Offline',
+  unknown: 'No data',
+}
 
 export function Card({ children, style, ...rest }) {
   return <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20,
@@ -20,7 +32,7 @@ export function Btn({ children, variant = 'primary', style, ...rest }) {
   const variants = {
     primary: { background: C.accent, color: '#fff' },
     ghost: { background: 'transparent', color: C.text, border: `1px solid ${C.border}` },
-    soft: { background: C.accentSoft, color: C.accent2 ?? C.accent },
+    soft: { background: C.accentSoft, color: C.accent },
     danger: { background: 'rgba(248,113,113,.14)', color: C.danger },
   }
   return <button style={{ ...base, ...variants[variant], ...style }}

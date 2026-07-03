@@ -4,18 +4,20 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? '/v1',
 })
 
-// Attach access token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
-// On 401 try to refresh; if that fails, kick to /login
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
     const original = err.config
+    const url = original?.url ?? ''
+    if (url.includes('/auth/login') || url.includes('/auth/refresh')) {
+      return Promise.reject(err)
+    }
     if (err.response?.status === 401 && !original._retry) {
       original._retry = true
       const refresh = localStorage.getItem('refresh_token')
@@ -30,6 +32,7 @@ api.interceptors.response.use(
           window.location.href = '/login'
         }
       } else {
+        localStorage.clear()
         window.location.href = '/login'
       }
     }

@@ -27,7 +27,7 @@ func main() {
 	log.Printf("connected to postgres")
 
 	// Seed / update the single global admin from env (compose-controlled).
-	seedAdmin(conn, getenv("ADMIN_EMAIL", "admin@trackproj.local"), os.Getenv("ADMIN_PASSWORD"))
+	seedAdmin(conn, getenv("ADMIN_EMAIL", "admin@trackstack.local"), os.Getenv("ADMIN_PASSWORD"))
 
 	jwtIssuer := auth.NewJWTIssuer(jwtSecret)
 	hub := ws.NewHub()

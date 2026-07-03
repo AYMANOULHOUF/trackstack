@@ -32,6 +32,7 @@ func NewRouter(s *Server) http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.RequireDeviceToken(s.DB))
 		r.Post("/v1/positions", s.IngestPosition)
+		r.Post("/v1/tracking-state", s.SetTrackingState)
 	})
 
 	// --- JWT auth (dashboard: admin + org) ---

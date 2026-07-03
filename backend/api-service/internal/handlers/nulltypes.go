@@ -30,12 +30,15 @@ func (n *sql_NullTime) Scan(src interface{}) error {
 // deriveStatus computes moving / stopped / offline from last known position,
 // never reading a stale column (Step 16 item 7 decision: status is computed,
 // not stored).
-func deriveStatus(lastAt sql_NullTime, offlineAfterSec int, tripStopSpeedKmh float64, lastSpeed sql_NullFloat64) string {
+func deriveStatus(lastAt sql_NullTime, offlineAfterSec int, tripStopSpeedKmh float64, lastSpeed sql_NullFloat64, trackingActive bool) string {
 	if !lastAt.Valid {
 		return "unknown"
 	}
 	if time.Since(lastAt.Time).Seconds() > float64(offlineAfterSec) {
 		return "offline"
+	}
+	if !trackingActive {
+		return "paused"
 	}
 	if lastSpeed.Valid && lastSpeed.Float64 > tripStopSpeedKmh {
 		return "moving"

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api'
-import { C, Card, Btn, Field, Chip, Dot, Modal, STATUS_COLOR } from '../ui'
+import { C, Card, Btn, Field, Chip, Dot, Modal, STATUS_COLOR, STATUS_LABEL } from '../ui'
 
 export default function AdminDevicesPage() {
   const qc = useQueryClient()
@@ -45,7 +45,7 @@ export default function AdminDevicesPage() {
         {!d.assigned && <Chip color={C.warn} style={{ marginLeft: 'auto' }}>Pending</Chip>}
       </div>
       <div style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>
-        {d.type} · {d.status}{d.last_speed != null ? ` · ${Math.round(d.last_speed)} km/h` : ''}
+        {d.type} · {STATUS_LABEL[d.status] ?? d.status}{d.last_speed != null ? ` · ${Math.round(d.last_speed)} km/h` : ''}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14, minHeight: 22 }}>
         {(d.orgs ?? []).map(o => <Chip key={o.id} color={C.accent}>{o.name}</Chip>)}

@@ -1,17 +1,18 @@
 :80 {
     encode gzip
 
-    # API + WebSocket
+    handle /healthz {
+        reverse_proxy api-service:8080
+    }
+
     handle /v1/* {
         reverse_proxy api-service:8080
     }
 
-    # Protocol gateway
     handle /proto/* {
         reverse_proxy protocol-gateway:8081
     }
 
-    # Everything else → React SPA
     handle {
         root * /srv/frontend
         try_files {path} /index.html

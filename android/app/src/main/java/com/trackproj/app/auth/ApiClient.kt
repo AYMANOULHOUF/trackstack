@@ -86,4 +86,26 @@ class ApiClient(private val baseUrl: String = BuildConfig.BASE_URL) {
             }
         }
     }
+
+    /**
+     * POST /v1/tracking-state — device-token authenticated. Tells the backend
+     * whether tracking is intentionally active so the dashboard can show
+     * "Tracking off" instead of a generic "Stationary" status.
+     */
+    fun setTrackingState(deviceToken: String, active: Boolean) {
+        val body = JSONObject().put("active", active).toString().toRequestBody(jsonMedia)
+        val req = Request.Builder()
+            .url("$baseUrl/v1/tracking-state")
+            .addHeader("Authorization", "Bearer $deviceToken")
+            .post(body)
+            .build()
+        client.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) {
+                val msg = "tracking-state update failed (${resp.code}): ${resp.body?.string()}"
+                if (resp.code == 401 || resp.code == 403 || resp.code == 404)
+                    throw DeviceUnauthorizedException(msg)
+                throw IOException(msg)
+            }
+        }
+    }
 }

@@ -127,6 +127,7 @@ class LocationTrackingService : Service() {
         try {
             fused.requestLocationUpdates(request, locationCallback, mainLooper)
             isRunning = true
+            reportTrackingState(true)
         } catch (e: SecurityException) {
             Log.e(TAG, "location permission missing: ${e.message}")
             stopSelf()
@@ -136,8 +137,17 @@ class LocationTrackingService : Service() {
     private fun stopTracking() {
         fused.removeLocationUpdates(locationCallback)
         isRunning = false
+        reportTrackingState(false)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    private fun reportTrackingState(active: Boolean) {
+        val token = tokenStore.deviceToken ?: return
+        uploadExecutor.execute {
+            try { api.setTrackingState(token, active) }
+            catch (e: Exception) { Log.w(TAG, "tracking-state report failed: ${e.message}") }
+        }
     }
 
     private fun startForegroundWithNotification() {

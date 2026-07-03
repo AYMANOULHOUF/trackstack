@@ -18,7 +18,7 @@ export default function LoginPage() {
       const role = await login(email, password)
       nav(role === 'admin' ? '/admin/devices' : '/', { replace: true })
     } catch (err) {
-      setError(err.response?.data?.error ?? 'Something went wrong')
+      setError(err.response?.data?.error ?? 'Invalid email or password')
       setLoading(false)
     }
   }
@@ -27,7 +27,7 @@ export default function LoginPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <Card style={{ width: 380, padding: 36, animation: 'floatIn .2s ease' }}>
         <h1 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 800 }}>
-          Track<span style={{ color: C.accent }}>Proj</span>
+          Track<span style={{ color: C.accent }}>Stack</span>
         </h1>
         <p style={{ margin: '0 0 26px', color: C.muted, fontSize: 14 }}>Sign in to your dashboard</p>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
