@@ -1,16 +1,44 @@
-# React + Vite
+# TrackStack Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React 19 + Vite dashboard for [TrackStack](../README.md). It talks to the Go API over REST and a WebSocket, and renders device positions on a Leaflet/OpenStreetMap map.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + Vite 8
+- React Router
+- TanStack Query
+- Axios (JWT access token + automatic refresh)
+- Leaflet + react-leaflet
 
-## React Compiler
+## Run locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+VITE_API_URL=http://localhost:8080/v1 npm run dev
+```
 
-## Expanding the Oxlint configuration
+The app starts on `http://localhost:5173`. `VITE_API_URL` must point at the API service; without it the app falls back to the relative `/v1` path.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | Run Oxlint |
+
+## Structure
+
+```
+src/
+  api.js            Axios instance, auth header, refresh interceptor
+  AuthContext.jsx   Login state and token handling
+  useDevices.js     Device queries
+  useSocket.js      Live WebSocket connection
+  DeviceMap.jsx     Leaflet map component
+  pages/            Login, admin, and organization views
+  components/       Shared UI
+```
+
+In production the built `dist/` is served by Caddy from the repository root; see the main README for Docker deployment.
