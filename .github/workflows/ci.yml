@@ -66,7 +66,7 @@ jobs:
       - run: ./gradlew assembleDebug --no-daemon --stacktrace
 
   docker:
-    name: Docker images
+    name: Docker images and smoke test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -76,3 +76,44 @@ jobs:
         run: docker build -t trackstack-gateway backend/protocol-gateway
       - name: Build web image
         run: docker build -f Dockerfile.caddy -t trackstack-web .
+      - name: Write test environment
+        run: |
+          cat > .env <<'EOF'
+          DB_PASSWORD=trackproj_test
+          JWT_SECRET=test-jwt-secret-for-ci
+          ADMIN_EMAIL=admin@trackstack.local
+          ADMIN_PASSWORD=test-admin-password
+          GATEWAY_SECRET=test-gateway-secret
+          EOF
+      - name: Start the stack
+        run: docker compose up -d --build
+      - name: Wait for the API
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/healthz >/dev/null 2>&1; then
+              echo "API is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become ready"
+          docker compose logs --no-color --tail=200
+          exit 1
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          trap 'docker compose logs --no-color --tail=200' ERR
+          curl -fsS http://localhost:8080/healthz
+          echo
+          login=$(curl -fsS -X POST http://localhost:8080/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"admin@trackstack.local","password":"test-admin-password"}')
+          echo "$login" | grep -q '"access_token"'
+          token=$(echo "$login" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+          test -n "$token"
+          curl -fsS http://localhost:8080/v1/orgs -H "Authorization: Bearer $token" >/dev/null
+          curl -fsS http://localhost:8080/ | grep -qi '<div id="root">'
+          echo "smoke test passed"
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v
