@@ -3,6 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Defaults to the host machine as seen from the Android emulator. Override for a
+// physical device with: ./gradlew assembleDebug -PbaseUrl=http://<lan-ip>:8080
+val baseUrl = (project.findProperty("baseUrl") as String?) ?: "http://10.0.2.2:8080"
+
 android {
     namespace = "com.trackproj.app"
     compileSdk = 34
@@ -14,8 +18,7 @@ android {
         versionCode = 1
         versionName = "0.1"
 
-        // Dev backend on the LAN — swap here (or via -P) to retarget the app.
-        buildConfigField("String", "BASE_URL", "\"http://192.168.5.198:8080\"")
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
     }
 
     buildTypes {

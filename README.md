@@ -8,6 +8,7 @@
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Compose-7F52FF?style=flat-square&logo=kotlin&logoColor=white">
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16%20%2B%20PostGIS-4169E1?style=flat-square&logo=postgresql&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker%20Compose-2496ED?style=flat-square&logo=docker&logoColor=white">
+  <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/AYMANOULHOUF/trackstack/ci.yml?branch=main&style=flat-square&label=CI">
 </p>
 
 > **Consent first.** TrackStack is built for devices you own or are explicitly authorized to track — your own phone, your own fleet, or hardware you administer. It is not a tool for covert tracking.
@@ -131,7 +132,14 @@ The Vite dev server runs on `http://localhost:5173`; set `VITE_API_URL` so API c
 
 ### Android
 
-Open `android/` in Android Studio, update `BASE_URL` in `android/app/build.gradle.kts` to your machine's LAN address, then build and install. Grant location and notification permissions, then enroll the device.
+Open `android/` in Android Studio and build. The app defaults to `http://10.0.2.2:8080`, which reaches the host machine from the Android emulator. For a physical device, point it at your machine's LAN address:
+
+```bash
+cd android
+./gradlew assembleDebug -PbaseUrl=http://192.168.1.50:8080
+```
+
+Grant location and notification permissions, then enroll the device.
 
 ---
 
