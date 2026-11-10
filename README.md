@@ -243,4 +243,4 @@ The decisions behind the architecture — auth model, background-tracking constr
 
 ## Status
 
-TrackStack is under active development. The API, dashboard, and Android client are functional; the roadmap above tracks what is still in progress.
+TrackStack is under active development. The API, dashboard, and Android client are functional; the roadmap above tracks what is still in progress. CI builds and tests both Go services, lints and builds the dashboard, and assembles the Android debug APK on every push.
