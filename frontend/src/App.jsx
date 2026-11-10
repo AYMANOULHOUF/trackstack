@@ -5,6 +5,9 @@ import { C } from './ui'
 import LoginPage from './pages/LoginPage'
 import OrgMapPage from './pages/OrgMapPage'
 import OrgDevicesPage from './pages/OrgDevicesPage'
+import GeofencesPage from './pages/GeofencesPage'
+import TripsPage from './pages/TripsPage'
+import NotificationsPage from './pages/NotificationsPage'
 import AdminOrgsPage from './pages/AdminOrgsPage'
 import AdminDevicesPage from './pages/AdminDevicesPage'
 import AdminMapPage from './pages/AdminMapPage'
@@ -24,7 +27,7 @@ function Layout({ children }) {
   const { user, logout } = useAuth()
   const links = user?.role === 'admin'
     ? [['/admin/map', 'Map'], ['/admin/devices', 'Devices'], ['/admin/orgs', 'Organizations']]
-    : [['/', 'Map'], ['/devices', 'Devices']]
+    : [['/', 'Map'], ['/devices', 'Devices'], ['/geofences', 'Geofences'], ['/trips', 'Trips'], ['/notifications', 'Notifications']]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -56,6 +59,9 @@ export default function App() {
             {/* Org */}
             <Route path="/" element={<RequireRole role="org"><Layout><OrgMapPage /></Layout></RequireRole>} />
             <Route path="/devices" element={<RequireRole role="org"><Layout><OrgDevicesPage /></Layout></RequireRole>} />
+            <Route path="/geofences" element={<RequireRole role="org"><Layout><GeofencesPage /></Layout></RequireRole>} />
+            <Route path="/trips" element={<RequireRole role="org"><Layout><TripsPage /></Layout></RequireRole>} />
+            <Route path="/notifications" element={<RequireRole role="org"><Layout><NotificationsPage /></Layout></RequireRole>} />
 
             {/* Admin */}
             <Route path="/admin/map" element={<RequireRole role="admin"><Layout><AdminMapPage /></Layout></RequireRole>} />

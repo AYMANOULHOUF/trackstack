@@ -32,6 +32,19 @@ services:
       ADMIN_EMAIL:    ${ADMIN_EMAIL:-admin@trackstack.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
       LISTEN_ADDR:    :8080
+      # Shared secret for hardware ingest forwarded by the protocol gateway.
+      GATEWAY_SECRET: ${GATEWAY_SECRET:-}
+      # Trip segmentation pass interval (Go duration string).
+      TRIP_WORKER_INTERVAL: ${TRIP_WORKER_INTERVAL:-30s}
+      # Optional email delivery (leave blank to keep the email channel inert).
+      SMTP_ADDR:      ${SMTP_ADDR:-}
+      SMTP_USER:      ${SMTP_USER:-}
+      SMTP_PASSWORD:  ${SMTP_PASSWORD:-}
+      SMTP_FROM:      ${SMTP_FROM:-}
+      # Optional Web Push delivery (generate with: go run ./cmd/vapid).
+      VAPID_PUBLIC_KEY:  ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT:     ${VAPID_SUBJECT:-mailto:admin@trackstack.local}
     expose:
       - "8080"
 
@@ -45,8 +58,15 @@ services:
     environment:
       API_SERVICE_URL: http://api-service:8080
       LISTEN_ADDR:     :8081
+      GATEWAY_SECRET:  ${GATEWAY_SECRET:-}
+      # Raw TCP listener for GT06/Concox trackers.
+      GT06_LISTEN_ADDR: :5023
     expose:
       - "8081"
+      - "5023"
+    ports:
+      # GT06 trackers connect directly; Caddy only proxies HTTP.
+      - "${GT06_PORT:-5023}:5023"
 
   caddy:
     build:

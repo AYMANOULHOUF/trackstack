@@ -55,6 +55,7 @@ type deviceOut struct {
 	ID                      string   `json:"id"`
 	Name                    string   `json:"name"`
 	Type                    string   `json:"type"`
+	ExternalID              *string  `json:"external_id,omitempty"`
 	SpeedLimitKmh           *float64 `json:"speed_limit_kmh,omitempty"`
 	TripStopSpeedKmh        float64  `json:"trip_stop_speed_kmh"`
 	TripStopDurationSeconds int      `json:"trip_stop_duration_seconds"`
@@ -70,7 +71,7 @@ type deviceOut struct {
 	Assigned                bool     `json:"assigned"`
 }
 
-const deviceCols = `d.id, d.name, d.type, d.speed_limit_kmh, d.trip_stop_speed_kmh,
+const deviceCols = `d.id, d.name, d.type, d.external_id, d.speed_limit_kmh, d.trip_stop_speed_kmh,
 	d.trip_stop_duration_seconds, d.offline_after_seconds, d.tracking_active, d.created_at,
 	p.recorded_at, p.speed, ST_Y(p.geom::geometry), ST_X(p.geom::geometry)`
 
@@ -107,12 +108,16 @@ func (s *Server) ListDevices(w http.ResponseWriter, r *http.Request) {
 		d := &deviceOut{Orgs: []orgRef{}}
 		var lastRecordedAt sql_NullTime
 		var lastSpeed, lastLat, lastLon sql_NullFloat64
+		var externalID sql_NullString
 		var trackingActive bool
-		if err := rows.Scan(&d.ID, &d.Name, &d.Type, &d.SpeedLimitKmh, &d.TripStopSpeedKmh,
+		if err := rows.Scan(&d.ID, &d.Name, &d.Type, &externalID, &d.SpeedLimitKmh, &d.TripStopSpeedKmh,
 			&d.TripStopDurationSeconds, &d.OfflineAfterSeconds, &trackingActive, &d.CreatedAt,
 			&lastRecordedAt, &lastSpeed, &lastLat, &lastLon); err != nil {
 			writeErr(w, http.StatusInternalServerError, "scan error")
 			return
+		}
+		if externalID.Valid {
+			d.ExternalID = &externalID.String
 		}
 		d.TrackingActive = trackingActive
 		d.Status = "unknown"
@@ -205,6 +210,7 @@ func (s *Server) SetDeviceOrgs(w http.ResponseWriter, r *http.Request) {
 
 type updateDeviceRequest struct {
 	Name                    *string  `json:"name,omitempty"`
+	ExternalID              *string  `json:"external_id,omitempty"`
 	SpeedLimitKmh           *float64 `json:"speed_limit_kmh,omitempty"`
 	TripStopSpeedKmh        *float64 `json:"trip_stop_speed_kmh,omitempty"`
 	TripStopDurationSeconds *int     `json:"trip_stop_duration_seconds,omitempty"`
@@ -228,11 +234,12 @@ func (s *Server) UpdateDevice(w http.ResponseWriter, r *http.Request) {
 		res, err = s.DB.ExecContext(r.Context(), `
 			UPDATE devices SET
 				name = COALESCE($1, name),
-				speed_limit_kmh = COALESCE($2, speed_limit_kmh),
-				trip_stop_speed_kmh = COALESCE($3, trip_stop_speed_kmh),
-				trip_stop_duration_seconds = COALESCE($4, trip_stop_duration_seconds)
-			WHERE id = $5`,
-			req.Name, req.SpeedLimitKmh, req.TripStopSpeedKmh, req.TripStopDurationSeconds, id)
+				external_id = CASE WHEN $2 = '' THEN NULL ELSE COALESCE($2, external_id) END,
+				speed_limit_kmh = COALESCE($3, speed_limit_kmh),
+				trip_stop_speed_kmh = COALESCE($4, trip_stop_speed_kmh),
+				trip_stop_duration_seconds = COALESCE($5, trip_stop_duration_seconds)
+			WHERE id = $6`,
+			req.Name, req.ExternalID, req.SpeedLimitKmh, req.TripStopSpeedKmh, req.TripStopDurationSeconds, id)
 	} else {
 		res, err = s.DB.ExecContext(r.Context(), `
 			UPDATE devices SET name = COALESCE($1, name)

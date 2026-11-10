@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/trackproj/api-service/internal/auth"
+	"github.com/trackproj/api-service/internal/notify"
 )
 
 type ingestRequest struct {
@@ -31,25 +33,36 @@ func (s *Server) IngestPosition(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+
+	posID, err := s.ingestPosition(r.Context(), deviceID, req)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]int64{"position_id": posID})
+}
+
+// ingestPosition is the shared write path for phone uploads and hardware
+// positions forwarded by the protocol gateway.
+func (s *Server) ingestPosition(ctx context.Context, deviceID string, req ingestRequest) (int64, error) {
 	if req.RecordedAt.IsZero() {
 		req.RecordedAt = time.Now().UTC()
 	}
 
 	// --- 1. Insert position ---
 	var posID int64
-	err := s.DB.QueryRowContext(r.Context(), `
+	err := s.DB.QueryRowContext(ctx, `
 		INSERT INTO positions (device_id, geom, speed, heading, accuracy, battery, recorded_at)
 		VALUES ($1, ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography, $4, $5, $6, $7, $8)
 		RETURNING id`,
 		deviceID, req.Lon, req.Lat, req.Speed, req.Heading, req.Accuracy, req.Battery, req.RecordedAt,
 	).Scan(&posID)
 	if err != nil {
-		writeErr(w, http.StatusInternalServerError, "could not insert position")
-		return
+		return 0, fmt.Errorf("could not insert position")
 	}
 
 	// --- 2. Update last_position_id ---
-	if _, err := s.DB.ExecContext(r.Context(),
+	if _, err := s.DB.ExecContext(ctx,
 		`UPDATE devices SET last_position_id = $1 WHERE id = $2`, posID, deviceID,
 	); err != nil {
 		log.Printf("update last_position_id failed (non-fatal): %v", err)
@@ -57,12 +70,13 @@ func (s *Server) IngestPosition(w http.ResponseWriter, r *http.Request) {
 
 	// Per-device speed limit (global to the device, independent of org).
 	var speedLimitKmh *float64
-	_ = s.DB.QueryRowContext(r.Context(),
-		`SELECT speed_limit_kmh FROM devices WHERE id = $1`, deviceID).Scan(&speedLimitKmh)
+	var deviceName string
+	_ = s.DB.QueryRowContext(ctx,
+		`SELECT name, speed_limit_kmh FROM devices WHERE id = $1`, deviceID).Scan(&deviceName, &speedLimitKmh)
 
 	// Orgs this device belongs to (may be empty → unassigned/pending).
 	memberOrgs := []string{}
-	if rows, err := s.DB.QueryContext(r.Context(),
+	if rows, err := s.DB.QueryContext(ctx,
 		`SELECT org_id FROM device_orgs WHERE device_id = $1`, deviceID); err == nil {
 		for rows.Next() {
 			var o string
@@ -87,7 +101,7 @@ func (s *Server) IngestPosition(w http.ResponseWriter, r *http.Request) {
 	// --- 3. Speed violation (checked once, broadcast to all who can see it) ---
 	var speedEvent *map[string]interface{}
 	if req.Speed != nil && speedLimitKmh != nil && *req.Speed > *speedLimitKmh {
-		if _, err := s.DB.ExecContext(r.Context(), `
+		if _, err := s.DB.ExecContext(ctx, `
 			INSERT INTO speed_events (device_id, speed, limit_at_time)
 			VALUES ($1, $2, $3)`, deviceID, *req.Speed, *speedLimitKmh,
 		); err != nil {
@@ -104,11 +118,33 @@ func (s *Server) IngestPosition(w http.ResponseWriter, r *http.Request) {
 	// --- 4. Fan out per org (geofences are per org) + admin firehose ---
 	for _, org := range memberOrgs {
 		s.broadcast(org, payload)
-		for _, gfe := range s.checkGeofences(r, deviceID, org, posID, req.Lat, req.Lon) {
+		for _, gfe := range s.checkGeofences(ctx, deviceID, org, posID, req.Lat, req.Lon) {
 			s.broadcast(org, gfe)
+			if s.Notifier != nil {
+				kind, _ := gfe["type"].(string)
+				geofenceName, _ := gfe["geofence_name"].(string)
+				title := "Geofence enter"
+				if kind == "geofence_exit" {
+					title = "Geofence exit"
+				}
+				s.Notifier.Enqueue(notify.Event{
+					OrgID: org, Kind: kind, Title: title,
+					Body:     fmt.Sprintf("%s %s geofence %q.", deviceName, map[string]string{"geofence_enter": "entered", "geofence_exit": "left"}[kind], geofenceName),
+					DeviceID: deviceID, DeviceName: deviceName,
+					OccurredAt: time.Now().UTC(),
+				})
+			}
 		}
 		if speedEvent != nil {
 			s.broadcast(org, *speedEvent)
+			if s.Notifier != nil {
+				s.Notifier.Enqueue(notify.Event{
+					OrgID: org, Kind: "speed", Title: "Speed limit exceeded",
+					Body:     fmt.Sprintf("%s reported %.0f km/h (limit %.0f km/h).", deviceName, *req.Speed, *speedLimitKmh),
+					DeviceID: deviceID, DeviceName: deviceName,
+					OccurredAt: time.Now().UTC(),
+				})
+			}
 		}
 	}
 	s.broadcast(AdminChannel, payload)
@@ -116,11 +152,11 @@ func (s *Server) IngestPosition(w http.ResponseWriter, r *http.Request) {
 		s.broadcast(AdminChannel, *speedEvent)
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]int64{"position_id": posID})
+	return posID, nil
 }
 
-func (s *Server) checkGeofences(r *http.Request, deviceID, orgID string, posID int64, lat, lon float64) []map[string]interface{} {
-	rows, err := s.DB.QueryContext(r.Context(), `
+func (s *Server) checkGeofences(ctx context.Context, deviceID, orgID string, posID int64, lat, lon float64) []map[string]interface{} {
+	rows, err := s.DB.QueryContext(ctx, `
 		SELECT id, name FROM geofences
 		WHERE org_id = $1
 		  AND ST_Within(
@@ -141,7 +177,7 @@ func (s *Server) checkGeofences(r *http.Request, deviceID, orgID string, posID i
 		}
 	}
 
-	prevRows, err := s.DB.QueryContext(r.Context(), `
+	prevRows, err := s.DB.QueryContext(ctx, `
 		SELECT DISTINCT ON (geofence_id) geofence_id, type
 		FROM geofence_events
 		WHERE device_id = $1
@@ -165,7 +201,7 @@ func (s *Server) checkGeofences(r *http.Request, deviceID, orgID string, posID i
 		if prevState[gid] == "enter" {
 			continue
 		}
-		if err := s.insertGeofenceEvent(r, deviceID, gid, "enter"); err == nil {
+		if err := s.insertGeofenceEvent(ctx, deviceID, gid, "enter"); err == nil {
 			events = append(events, map[string]interface{}{
 				"type": "geofence_enter", "device_id": deviceID,
 				"geofence_id": gid, "geofence_name": gname, "occurred_at": time.Now().UTC(),
@@ -180,9 +216,9 @@ func (s *Server) checkGeofences(r *http.Request, deviceID, orgID string, posID i
 			continue
 		}
 		var gname string
-		_ = s.DB.QueryRowContext(r.Context(),
+		_ = s.DB.QueryRowContext(ctx,
 			`SELECT name FROM geofences WHERE id = $1`, gid).Scan(&gname)
-		if err := s.insertGeofenceEvent(r, deviceID, gid, "exit"); err == nil {
+		if err := s.insertGeofenceEvent(ctx, deviceID, gid, "exit"); err == nil {
 			events = append(events, map[string]interface{}{
 				"type": "geofence_exit", "device_id": deviceID,
 				"geofence_id": gid, "geofence_name": gname, "occurred_at": time.Now().UTC(),
@@ -192,8 +228,8 @@ func (s *Server) checkGeofences(r *http.Request, deviceID, orgID string, posID i
 	return events
 }
 
-func (s *Server) insertGeofenceEvent(r *http.Request, deviceID, geofenceID, evType string) error {
-	_, err := s.DB.ExecContext(r.Context(),
+func (s *Server) insertGeofenceEvent(ctx context.Context, deviceID, geofenceID, evType string) error {
+	_, err := s.DB.ExecContext(ctx,
 		`INSERT INTO geofence_events (device_id, geofence_id, type) VALUES ($1, $2, $3)`,
 		deviceID, geofenceID, evType)
 	return err

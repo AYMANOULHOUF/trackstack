@@ -3,19 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { STATUS_COLOR, STATUS_LABEL, C } from '../ui'
-
-const TILES = {
-  dark: {
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    subdomains: 'abcd',
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-  },
-  light: {
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    subdomains: 'abcd',
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-  },
-}
+import { TILES } from '../mapTiles'
 
 function FitBounds({ points, disabled }) {
   const map = useMap()

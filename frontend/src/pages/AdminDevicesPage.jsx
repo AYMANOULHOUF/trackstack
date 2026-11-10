@@ -25,7 +25,10 @@ export default function AdminDevicesPage() {
     onSuccess: () => { setAssign(null); qc.invalidateQueries({ queryKey: ['devices'] }); qc.invalidateQueries({ queryKey: ['orgs'] }) },
   })
   const saveRename = useMutation({
-    mutationFn: ({ id, name }) => api.patch(`/devices/${id}`, { name }),
+    mutationFn: ({ id, name, externalId }) => {
+      // Always send external_id so clearing the field removes the hardware link.
+      return api.patch(`/devices/${id}`, { name, external_id: externalId ?? '' })
+    },
     onSuccess: () => { setRename(null); qc.invalidateQueries({ queryKey: ['devices'] }) },
   })
   const del = useMutation({
@@ -35,7 +38,12 @@ export default function AdminDevicesPage() {
 
   const unassigned = devices.filter(d => !d.assigned)
   const assigned = devices.filter(d => d.assigned)
-  const toggle = (set, id) => { const n = new Set(set); n.has(id) ? n.delete(id) : n.add(id); return n }
+  const toggle = (set, id) => {
+    const n = new Set(set)
+    if (n.has(id)) n.delete(id)
+    else n.add(id)
+    return n
+  }
 
   const Row = (d) => (
     <Card key={d.id} style={{ padding: 16 }}>
@@ -46,6 +54,7 @@ export default function AdminDevicesPage() {
       </div>
       <div style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>
         {d.type} · {STATUS_LABEL[d.status] ?? d.status}{d.last_speed != null ? ` · ${Math.round(d.last_speed)} km/h` : ''}
+        {d.external_id ? ` · ID ${d.external_id}` : ''}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14, minHeight: 22 }}>
         {(d.orgs ?? []).map(o => <Chip key={o.id} color={C.accent}>{o.name}</Chip>)}
@@ -53,7 +62,7 @@ export default function AdminDevicesPage() {
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Btn onClick={() => setAssign({ device: d, orgIds: new Set((d.orgs ?? []).map(o => o.id)) })}>Assign</Btn>
-        <Btn variant="ghost" onClick={() => setRename({ id: d.id, name: d.name })}>Rename</Btn>
+        <Btn variant="ghost" onClick={() => setRename({ id: d.id, name: d.name, externalId: d.external_id ?? '' })}>Edit</Btn>
         <Btn variant="danger" onClick={() => confirm(`Delete ${d.name} everywhere?`) && del.mutate(d.id)}>Delete</Btn>
       </div>
     </Card>
@@ -116,8 +125,16 @@ export default function AdminDevicesPage() {
         </div>
       </Modal>
 
-      <Modal open={!!rename} onClose={() => setRename(null)} title="Rename device">
-        <Field value={rename?.name ?? ''} onChange={e => setRename({ ...rename, name: e.target.value })} placeholder="Device name" />
+      <Modal open={!!rename} onClose={() => setRename(null)} title="Edit device">
+        <label style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Name</label>
+        <Field value={rename?.name ?? ''} onChange={e => setRename({ ...rename, name: e.target.value })}
+          placeholder="Device name" style={{ margin: '6px 0 14px' }} />
+        <label style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Hardware ID (IMEI or serial)</label>
+        <Field value={rename?.externalId ?? ''} onChange={e => setRename({ ...rename, externalId: e.target.value })}
+          placeholder="e.g. 123456789012345" style={{ marginTop: 6 }} />
+        <p style={{ color: C.muted, fontSize: 12, margin: '8px 0 0' }}>
+          Used by the protocol gateway to match GT06/HTTP trackers to this device.
+        </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
           <Btn variant="ghost" onClick={() => setRename(null)}>Cancel</Btn>
           <Btn onClick={() => rename?.name && saveRename.mutate(rename)}>Save</Btn>

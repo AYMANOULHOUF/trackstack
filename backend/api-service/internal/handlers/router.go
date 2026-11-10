@@ -22,6 +22,8 @@ func NewRouter(s *Server) http.Handler {
 	// Freshly installed phones self-enroll here → created as an unassigned
 	// (pending) device that only the admin can see until assigned to an org.
 	r.Post("/v1/enroll", s.EnrollDevice)
+	// Hardware protocol gateway → API. Authenticated by X-Gateway-Secret.
+	r.Post("/v1/gateway/positions", s.GatewayIngestPosition)
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -53,6 +55,10 @@ func NewRouter(s *Server) http.Handler {
 		r.Get("/v1/geofences/{id}/events", s.ListGeofenceEvents)
 		r.Get("/v1/trips", s.ListTrips)
 		r.Get("/v1/activity", s.ListActivity)
+
+		// Org-wide alert delivery (email + Web Push).
+		r.Get("/v1/notifications", s.GetNotifications)
+		r.Put("/v1/notifications", s.PutNotifications)
 
 		// --- Admin only ---
 		r.Group(func(r chi.Router) {

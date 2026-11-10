@@ -8,5 +8,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /protocol-gateway ./cmd/gateway
 FROM alpine:3.19
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /protocol-gateway /protocol-gateway
-EXPOSE 8081
+EXPOSE 8081 5023
 ENTRYPOINT ["/protocol-gateway"]

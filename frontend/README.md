@@ -36,9 +36,9 @@ src/
   AuthContext.jsx   Login state and token handling
   useDevices.js     Device queries
   useSocket.js      Live WebSocket connection
-  DeviceMap.jsx     Leaflet map component
+  mapTiles.js       Shared basemap definitions
   pages/            Login, admin, and organization views
-  components/       Shared UI
+  components/       Shared UI and the Leaflet map component
 ```
 
-In production the built `dist/` is served by Caddy from the repository root; see the main README for Docker deployment.
+The organization views cover the live map, devices, geofence drawing, trips, and notification settings. In production the built `dist/` is served by Caddy from the repository root; see the main README for Docker deployment.
