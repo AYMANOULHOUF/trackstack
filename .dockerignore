@@ -1,0 +1,10 @@
+.git
+.github
+.gitignore
+.env
+*.env.local
+frontend/node_modules
+frontend/dist
+android
+backend
+*.md

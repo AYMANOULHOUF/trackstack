@@ -64,3 +64,15 @@ jobs:
       - run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
       - run: chmod +x gradlew
       - run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build API image
+        run: docker build -t trackstack-api backend/api-service
+      - name: Build gateway image
+        run: docker build -t trackstack-gateway backend/protocol-gateway
+      - name: Build web image
+        run: docker build -f Dockerfile.caddy -t trackstack-web .
