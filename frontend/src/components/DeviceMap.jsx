@@ -48,7 +48,7 @@ export default function DeviceMap({ devices, subtitle }) {
 
   return (
     <MapContainer center={[20, 0]} zoom={2} zoomControl={false} style={{ width: '100%', height: '100%' }}>
-      <TileLayer key={tile} attribution={TILES[tile].attribution} url={TILES[tile].url} subdomains={TILES[tile].subdomains} />
+      <TileLayer key={tile} attribution={TILES[tile].attribution} url={TILES[tile].url} maxNativeZoom={TILES[tile].maxNativeZoom} maxZoom={19} />
       <FitBounds points={points} disabled={!!followId} />
       {followed && <Follower device={followed} />}
       {positioned.map(d => {
