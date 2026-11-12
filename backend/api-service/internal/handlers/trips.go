@@ -20,7 +20,7 @@ func (s *Server) ListTrips(w http.ResponseWriter, r *http.Request) {
 	// Confirm ownership.
 	var check string
 	if err := s.DB.QueryRowContext(r.Context(),
-		`SELECT id FROM devices WHERE id = $1 AND org_id = $2`, deviceID, orgID,
+		`SELECT device_id FROM device_orgs WHERE device_id = $1 AND org_id = $2`, deviceID, orgID,
 	).Scan(&check); err != nil {
 		writeErr(w, http.StatusNotFound, "device not found")
 		return

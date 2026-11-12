@@ -117,6 +117,26 @@ jobs:
           token=$(echo "$login" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
           test -n "$token"
           curl -fsS http://localhost:8080/v1/orgs -H "Authorization: Bearer $token" >/dev/null
+          org=$(curl -fsS -X POST http://localhost:8080/v1/orgs \
+            -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
+            -d '{"name":"CI Org","email":"ci@trackstack.local","password":"ci-password-123"}')
+          org_id=$(echo "$org" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')
+          test -n "$org_id"
+          device=$(curl -fsS -X POST http://localhost:8080/v1/enroll \
+            -H 'Content-Type: application/json' -d '{"name":"CI Phone","type":"phone"}')
+          device_id=$(echo "$device" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')
+          test -n "$device_id"
+          curl -fsS -X PUT "http://localhost:8080/v1/devices/$device_id/orgs" \
+            -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
+            -d "{\"org_ids\":[\"$org_id\"]}"
+          org_login=$(curl -fsS -X POST http://localhost:8080/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"ci@trackstack.local","password":"ci-password-123"}')
+          org_token=$(echo "$org_login" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+          test -n "$org_token"
+          # Trips must authorize through device_orgs, not the legacy devices.org_id column.
+          curl -fsS "http://localhost:8080/v1/trips?device_id=$device_id" \
+            -H "Authorization: Bearer $org_token" >/dev/null
           curl -fsS http://localhost:8080/ | grep -qi '<div id="root">'
           echo "smoke test passed"
       - name: Stop the stack
