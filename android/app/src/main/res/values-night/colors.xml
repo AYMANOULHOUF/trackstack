@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark palette: same brand green, lifted to mint for contrast -->
+    <color name="background">#0D1411</color>
+    <color name="surface">#141D18</color>
+    <color name="on_surface">#C9D6CD</color>
+    <color name="on_background">#C9D6CD</color>
+
+    <color name="primary">#7BD3A0</color>
+    <color name="on_primary">#072015</color>
+    <color name="primary_container">#1B4A34</color>
+    <color name="on_primary_container">#C9EBD8</color>
+
+    <color name="secondary">#A9C0B1</color>
+    <color name="on_secondary">#0C1A12</color>
+    <color name="surface_variant">#1D2A23</color>
+    <color name="on_surface_variant">#98AC9F</color>
+    <color name="outline">#374A3F</color>
+    <color name="error">#F08A8A</color>
+    <color name="on_error">#1A1010</color>
+
+    <color name="scrim_75">#BF000000</color>
+    <color name="scrim_60">#99000000</color>
+</resources>
