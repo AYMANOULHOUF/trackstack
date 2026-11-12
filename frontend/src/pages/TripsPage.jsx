@@ -27,7 +27,7 @@ function TripMap({ deviceId, trip }) {
 
   return (
     <MapContainer center={[31.79, -7.09]} zoom={6} zoomControl={false} style={{ width: '100%', height: '100%' }}>
-      <TileLayer attribution={TILES.dark.attribution} url={TILES.dark.url} subdomains={TILES.dark.subdomains} />
+      <TileLayer attribution={TILES.dark.attribution} url={TILES.dark.url} maxNativeZoom={TILES.dark.maxNativeZoom} maxZoom={19} />
       <FitLine line={line} />
       {line.length > 1 && <Polyline positions={line} pathOptions={{ color: C.accent, weight: 4 }} />}
       {line.length > 0 && <CircleMarker center={line[0]} radius={7}

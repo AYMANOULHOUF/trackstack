@@ -112,7 +112,7 @@ export default function GeofencesPage() {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
       <MapContainer center={[31.79, -7.09]} zoom={6} zoomControl={false} style={{ width: '100%', height: '100%' }}>
-        <TileLayer attribution={TILES.dark.attribution} url={TILES.dark.url} subdomains={TILES.dark.subdomains} />
+        <TileLayer attribution={TILES.dark.attribution} url={TILES.dark.url} maxNativeZoom={TILES.dark.maxNativeZoom} maxZoom={19} />
         <FitGeofences polygons={polygons} />
         <DrawLayer
           drawing={drawing}
