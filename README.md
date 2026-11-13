@@ -258,4 +258,4 @@ The decisions behind the architecture — auth model, background-tracking constr
 
 ## Status
 
-TrackStack is under active development. The API, dashboard, and Android client are functional; the roadmap above tracks what is still in progress. CI builds and tests both Go services, lints and builds the dashboard, assembles the Android debug APK, builds the Docker images, and smoke-tests the full Compose stack on pushes to `main` and on pull requests.
+TrackStack is under active development. The API, dashboard, and Android client are functional; the roadmap above tracks what is still in progress. CI checks README version consistency, builds and tests both Go services, lints and builds the dashboard, assembles the Android debug APK, builds the Docker images, and smoke-tests the full Compose stack on pushes to `main` and on pull requests.

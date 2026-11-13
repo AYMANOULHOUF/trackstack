@@ -13,7 +13,7 @@ and the documentation to update before opening a pull request.
 
 ## Build and test
 
-Run the checks that match what you changed. CI runs the same commands.
+Run the checks that match what you changed. CI runs the same commands (plus a README version-consistency check). Also run `python3 scripts/check_docs.py` if you change advertised versions or toolchain docs.
 
 ### Backend (Go 1.22)
 
