@@ -1,5 +1,10 @@
 # Session Log — Backend Fixes, Deployment Debugging, and Android App Bootstrap
 
+> **Historical session log.** This was written while the Android client was a
+> Kotlin/Compose scaffold. It has since been rewritten in **Java + XML layouts**
+> (see `docs/Android-Java-Migration.docx` and the current `android/` sources), so
+> the Kotlin class/file names below no longer exist. Kept for project history.
+
 Continuation of `read_me.md`. This session covered fixing the backend deployment,
 verifying the tracking pipeline end-to-end, and starting the Android app from
 scratch (scaffold → build toolchain → auth flow).

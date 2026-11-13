@@ -1,11 +1,12 @@
 # TrackStack
 
-**Self-hosted fleet & GPS tracking platform.** A Go API, a React + Leaflet dashboard, a Kotlin Android client, and PostGIS storage — packaged so you can run the whole stack on your own server.
+**Self-hosted fleet & GPS tracking platform.** A Go API, a React + Leaflet dashboard, a Java Android client (XML layouts), and PostGIS storage — packaged so you can run the whole stack on your own server.
 
 <p>
   <img alt="Go" src="https://img.shields.io/badge/Go-1.22-00ADD8?style=flat-square&logo=go&logoColor=white">
   <img alt="React" src="https://img.shields.io/badge/React-19-20232A?style=flat-square&logo=react&logoColor=61DAFB">
-  <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-Compose-7F52FF?style=flat-square&logo=kotlin&logoColor=white">
+  <img alt="Android" src="https://img.shields.io/badge/Android-Java%20%2B%20XML-3DDC84?style=flat-square&logo=android&logoColor=white">
+  <img alt="Node" src="https://img.shields.io/badge/Node-22-339933?style=flat-square&logo=node.js&logoColor=white">
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16%20%2B%20PostGIS-4169E1?style=flat-square&logo=postgresql&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker%20Compose-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/AYMANOULHOUF/trackstack/ci.yml?branch=main&style=flat-square&label=CI">
@@ -17,7 +18,7 @@
 
 ## What it does
 
-- **Live map** — positions stream over WebSocket and render on an OpenStreetMap/Leaflet map.
+- **Live map** — positions stream over WebSocket and render on a Leaflet map with keyless Esri basemaps.
 - **Multi-tenant organizations** — a global admin creates organizations and assigns devices; org users only see their own fleet.
 - **Device enrollment** — a freshly installed Android client self-enrolls and waits in a pending state until an admin assigns it.
 - **Two auth models** — short-lived JWTs with refresh for dashboard users, long-lived revocable tokens for devices.
@@ -25,7 +26,7 @@
 - **Speed events & trips** — speed violations are recorded, and trips are segmented automatically from position history.
 - **Notifications** — alerts reach the dashboard over WebSocket and can also be delivered by email or browser push.
 - **Hardware trackers** — GT06/Concox TCP and HTTP/JSON trackers feed the same ingest pipeline through the protocol gateway.
-- **Activity log** — an audit trail of tracking and device activity.
+- **Activity log** — an audit trail of dashboard actions (currently geofence and notification changes).
 - **Android tracking** — a foreground location service keeps reporting while the app is backgrounded, with an osmdroid map and tracking on/off control.
 
 ---
@@ -34,10 +35,10 @@
 
 ```mermaid
 flowchart LR
-    Phone["Android client<br/>Kotlin + Compose"] -->|"device token<br/>POST /v1/positions"| API
+    Phone["Android client<br/>Java + XML"] -->|"device token<br/>POST /v1/positions"| Caddy
     Browser["React dashboard<br/>Vite + Leaflet"] -->|"JWT + WebSocket"| Caddy
     Tracker["GT06 / HTTP tracker"] -->|"TCP :5023 or /proto/*"| GW
-    Caddy["Caddy :8080"] --> API["Go API<br/>Chi + JWT"]
+    Caddy["Caddy :80<br/>(host :8080)"] --> API["Go API<br/>Chi + JWT"]
     Caddy -->|"/proto/*"| GW["Protocol gateway"]
     GW -->|"X-Gateway-Secret"| API
     API --> DB[("PostgreSQL 16<br/>+ PostGIS 3.4")]
@@ -50,15 +51,15 @@ flowchart LR
 | **API** | Go 1.22, Chi router, `golang-jwt`, Gorilla WebSocket, `lib/pq` |
 | **Gateway** | Separate Go service: GT06/Concox TCP adapter, HTTP/JSON adapter, shared secret to the API |
 | **Database** | PostgreSQL 16 + PostGIS 3.4, SQL migrations mounted at container init |
-| **Web** | React 19, Vite 8, React Router, TanStack Query, Axios, Leaflet + react-leaflet |
-| **Android** | Kotlin, Jetpack Compose, foreground location service, osmdroid, OkHttp |
+| **Web** | React 19, Vite 8, React Router, TanStack Query, Axios, Leaflet + react-leaflet (keyless Esri basemaps) |
+| **Android** | Java 17 + XML layouts (Material 3), foreground location service, osmdroid, OkHttp; `minSdk` 26, compile/target SDK 34 |
 | **Deployment** | Docker Compose, Caddy serving the built frontend and reverse-proxying the API |
 
 ---
 
 ## Quick start (Docker)
 
-**Requirements:** Docker with Compose v2.
+**Requirements:** Docker with Compose v2. For local (non-Docker) development you also need Go 1.22+, Node.js 22+, and JDK 17 with Android SDK 34.
 
 ```bash
 git clone https://github.com/AYMANOULHOUF/trackstack.git
@@ -124,13 +125,15 @@ Apply `backend/migrations/*.sql` to a PostGIS-enabled database before starting t
 
 ```bash
 cd frontend
-npm install
+npm ci
 VITE_API_URL=http://localhost:8080/v1 npm run dev
 ```
 
 The Vite dev server runs on `http://localhost:5173`; set `VITE_API_URL` so API calls reach the Go service.
 
 ### Android
+
+The client is plain **Java + XML layouts** (no Kotlin source). Build it with JDK 17 and Android SDK platform 34 / build-tools 34.0.0 via the Gradle 8.7 wrapper.
 
 Open `android/` in Android Studio and build. The app defaults to `http://10.0.2.2:8080`, which reaches the host machine from the Android emulator. For a physical device, point it at your machine's LAN address:
 
@@ -163,9 +166,15 @@ backend/
   protocol-gateway/   Go service for hardware protocol adapters
   migrations/         PostgreSQL/PostGIS schema
 frontend/             React 19 + Vite dashboard
-android/              Kotlin + Jetpack Compose tracking client
+android/              Java + XML tracking client (Gradle 8.7, AGP 8.5)
+docs/                 Historical design/session notes and the Java migration note
+scripts/              Repository checks (docs/version consistency)
 docker-compose.yml    db, api-service, protocol-gateway, caddy
+Dockerfile.caddy      multi-stage build for the static dashboard image
 Caddyfile             static frontend + API/gateway reverse proxy
+CONTRIBUTING.md       Build/test commands and documentation checklist
+AUDIT_LOG.md          Latest full repository audit and unresolved findings
+LICENSE               MIT license
 ```
 
 ---
@@ -219,11 +228,17 @@ delays tracking.
 ## Applying migrations to an existing database
 
 Docker's init directory only runs on a fresh volume. If you already have a
-`pgdata` volume from an earlier version, apply new migrations manually:
+`pgdata` volume from an earlier version, apply the migrations your volume has
+not seen yet, in filename order. For example, the latest one:
 
 ```bash
 docker compose exec -T db psql -U trackproj -d trackproj < backend/migrations/0004_trips_notifications_gateway.sql
 ```
+
+The files are `0001_init.sql`, `0002_admin_multiorg.sql`,
+`0003_tracking_state.sql`, and `0004_trips_notifications_gateway.sql`. Do not
+replay migrations that are already applied: `0001` and `0002` are not
+idempotent.
 
 ---
 
@@ -239,8 +254,8 @@ docker compose exec -T db psql -U trackproj -d trackproj < backend/migrations/00
 
 ## Design notes
 
-The decisions behind the architecture — auth model, background-tracking constraints, datastore choice, transport, and deployment — are documented in [`read_me.md`](read_me.md). The Android bootstrap is covered in [`session_log_android_bootstrap.md`](session_log_android_bootstrap.md).
+The decisions behind the architecture — auth model, background-tracking constraints, datastore choice, transport, and deployment — are documented in the historical [`docs/read_me.md`](docs/read_me.md). The Android bootstrap session is in [`docs/session_log_android_bootstrap.md`](docs/session_log_android_bootstrap.md), and the Kotlin → Java/XML rewrite is described in [`docs/Android-Java-Migration.docx`](docs/Android-Java-Migration.docx). Both markdown logs predate later changes, so treat this README and the code as current.
 
 ## Status
 
-TrackStack is under active development. The API, dashboard, and Android client are functional; the roadmap above tracks what is still in progress. CI builds and tests both Go services, lints and builds the dashboard, assembles the Android debug APK, builds the Docker images, and smoke-tests the full Compose stack on every push.
+TrackStack is under active development. The API, dashboard, and Android client are functional; the roadmap above tracks what is still in progress. CI builds and tests both Go services, lints and builds the dashboard, assembles the Android debug APK, builds the Docker images, and smoke-tests the full Compose stack on pushes to `main` and on pull requests.
