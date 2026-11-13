@@ -180,7 +180,7 @@ public class LocationTrackingService extends Service {
 
     private void startForegroundWithNotification() {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("TrackProj is tracking")
+                .setContentTitle("TrackStack is tracking")
                 .setContentText("Sharing your location with the dashboard")
                 .setSmallIcon(R.drawable.ic_stat_track)
                 .setOngoing(true)

@@ -1,5 +1,12 @@
 # Project: Phone/GPS Tracking Platform — Decision Log
 
+> **Historical design log.** This records decisions from the initial build and
+> is not a description of the current code. Several details have changed since:
+> the Android client is now **Java + XML layouts** (not Kotlin/Compose), the
+> dashboard uses keyless **Esri** basemaps (not raw OSM tiles), and some pages
+> listed below were later renamed or split. Treat the code and the root
+> `README.md` as the source of truth; see `AUDIT_LOG.md` for the audit notes.
+
 General-purpose, self-hostable location tracking platform. Usable by companies (fleet)
 and self-hosting individuals (own devices). Android app is visible (icon, normal
 permission prompts, persistent notification while tracking). Designed to later extend

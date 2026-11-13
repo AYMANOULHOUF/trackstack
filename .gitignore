@@ -23,9 +23,15 @@ pgdata/
 # OS
 .DS_Store
 Thumbs.db
+*.log
+*.hprof
 
-# IDE
+# IDE / local tooling
 .idea/
+.gradle/
+frontend/.vite/
+frontend/coverage/
+android/.kotlin/
 
 # Android / Gradle build artifacts
 android/build/

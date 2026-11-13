@@ -1,6 +1,6 @@
 # TrackStack Dashboard
 
-React 19 + Vite dashboard for [TrackStack](../README.md). It talks to the Go API over REST and a WebSocket, and renders device positions on a Leaflet/OpenStreetMap map.
+React 19 + Vite dashboard for [TrackStack](../README.md). It talks to the Go API over REST and a WebSocket, and renders device positions on a Leaflet map with keyless Esri basemaps (no tile API key required).
 
 ## Stack
 
@@ -13,11 +13,11 @@ React 19 + Vite dashboard for [TrackStack](../README.md). It talks to the Go API
 ## Run locally
 
 ```bash
-npm install
+npm ci
 VITE_API_URL=http://localhost:8080/v1 npm run dev
 ```
 
-The app starts on `http://localhost:5173`. `VITE_API_URL` must point at the API service; without it the app falls back to the relative `/v1` path.
+The app starts on `http://localhost:5173`. `VITE_API_URL` must point at the API service; without it the app falls back to the relative `/v1` path. The live WebSocket and the token-refresh call both derive their URL from `VITE_API_URL`, so they follow the same target in development.
 
 ## Scripts
 
@@ -36,7 +36,7 @@ src/
   AuthContext.jsx   Login state and token handling
   useDevices.js     Device queries
   useSocket.js      Live WebSocket connection
-  mapTiles.js       Shared basemap definitions
+  mapTiles.js       Shared keyless Esri basemap definitions
   pages/            Login, admin, and organization views
   components/       Shared UI and the Leaflet map component
 ```
