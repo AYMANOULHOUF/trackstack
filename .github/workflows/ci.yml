@@ -30,6 +30,13 @@ jobs:
       - run: go vet ./...
       - run: go test ./...
 
+  docs:
+    name: Docs version check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 scripts/check_docs.py
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
