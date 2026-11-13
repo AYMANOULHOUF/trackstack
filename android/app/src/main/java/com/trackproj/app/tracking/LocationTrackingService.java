@@ -49,6 +49,9 @@ public class LocationTrackingService extends Service {
     public static final String ACTION_LOCATION_UPDATE = "com.trackproj.app.LOCATION_UPDATE";
     public static final String EXTRA_LAT = "lat";
     public static final String EXTRA_LON = "lon";
+    public static final String EXTRA_SPEED = "speed_kmh";
+    public static final String EXTRA_ACCURACY = "accuracy_m";
+    public static final String EXTRA_TIME = "recorded_at";
 
     /** True while the service is actively tracking (same-process read for the UI). */
     private static volatile boolean running = false;
@@ -79,7 +82,8 @@ public class LocationTrackingService extends Service {
             }
 
             final Location fix = location;
-            final Double speed = fix.hasSpeed() ? (double) fix.getSpeed() : null;
+            // Android reports m/s; the API, speed limits and dashboard all use km/h.
+            final Double speed = fix.hasSpeed() ? fix.getSpeed() * 3.6 : null;
             final Double heading = fix.hasBearing() ? (double) fix.getBearing() : null;
             final Double accuracy = fix.hasAccuracy() ? (double) fix.getAccuracy() : null;
 
@@ -90,6 +94,9 @@ public class LocationTrackingService extends Service {
             update.setPackage(getPackageName());
             update.putExtra(EXTRA_LAT, fix.getLatitude());
             update.putExtra(EXTRA_LON, fix.getLongitude());
+            update.putExtra(EXTRA_SPEED, speed != null ? speed.floatValue() : 0f);
+            update.putExtra(EXTRA_ACCURACY, accuracy != null ? accuracy.floatValue() : -1f);
+            update.putExtra(EXTRA_TIME, fix.getTime());
             sendBroadcast(update);
         }
     };

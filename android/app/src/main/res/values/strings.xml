@@ -2,6 +2,71 @@
 <resources>
     <string name="app_name">TrackStack</string>
 
+    <string name="brand_track">Track</string>
+    <string name="brand_stack">Stack</string>
+    <string name="chip_live">LIVE</string>
+    <string name="chip_off">OFF</string>
+    <string name="dashboard_eyebrow">DEVICE TELEMETRY</string>
+    <string name="dashboard_title">This device</string>
+    <string name="dashboard_subtitle">Every fix this phone sends, live on the dashboard.</string>
+
+    <string name="status_off">Tracking off</string>
+    <string name="status_on">Tracking on</string>
+    <string name="no_fix_yet">No fixes yet</string>
+    <string name="coords_placeholder">—</string>
+    <string name="last_fix_seconds">Last fix %1$d s ago</string>
+    <string name="last_fix_minutes">Last fix %1$d min ago</string>
+    <string name="last_fix_hours">Last fix %1$d h ago</string>
+
+    <string name="label_speed">SPEED</string>
+    <string name="label_distance">DISTANCE</string>
+    <string name="label_fixes">FIXES</string>
+    <string name="unit_kmh">km/h</string>
+    <string name="unit_km">km</string>
+    <string name="unit_fix_count">fixes</string>
+    <string name="accuracy_value">Accuracy ±%1$d m</string>
+    <string name="accuracy_unknown">Accuracy —</string>
+    <string name="accuracy_footer">%1$s · %2$s</string>
+    <string name="session_label">Session %1$s</string>
+
+    <string name="telemetry_section">TELEMETRY</string>
+    <string name="telemetry_title">Speed, this session</string>
+    <string name="telemetry_peak">peak %1$d km/h</string>
+    <string name="telemetry_empty">No speed samples yet</string>
+
+    <string name="map_section">LOCATION</string>
+    <string name="map_title">Your trail, live</string>
+    <string name="map_empty">Waiting for the first GPS fix</string>
+    <string name="chip_live_trail">LIVE TRAIL</string>
+    <string name="chip_no_fix">NO FIX</string>
+    <string name="recentre">Recentre on the latest fix</string>
+
+    <string name="uptime_section">UPTIME</string>
+    <string name="uptime_title">Time distribution</string>
+    <string name="chip_session">SESSION</string>
+    <string name="legend_moving">Moving</string>
+    <string name="legend_idle">Stationary</string>
+    <string name="legend_silent">No signal</string>
+    <string name="uptime_note">Estimated from fix intervals while the app is open.</string>
+    <string name="donut_minutes">MIN</string>
+    <string name="donut_hours">HRS</string>
+
+    <string name="activity_section">ACTIVITY</string>
+    <string name="activity_title">Recent activity</string>
+    <string name="activity_empty">Nothing yet. Start tracking and events will appear here.</string>
+    <string name="event_tracking_started">Tracking started</string>
+    <string name="event_tracking_stopped">Tracking stopped</string>
+    <string name="event_first_fix">First fix received</string>
+    <string name="event_signal_lost">Signal lost</string>
+    <string name="event_signal_back">Signal restored</string>
+    <string name="event_fix">Fix received</string>
+    <string name="detail_gps">GPS</string>
+    <string name="detail_session">Session</string>
+    <string name="detail_after_gap">After %1$s without a fix</string>
+    <string name="detail_speed_accuracy">%1$d km/h · ±%2$d m</string>
+
+    <string name="tracking_note">Runs as a foreground service — the notification stays visible while tracking.</string>
+
     <string name="toggle_map_theme">Toggle map theme</string>
     <string name="zoom_in">Zoom in</string>
     <string name="zoom_out">Zoom out</string>

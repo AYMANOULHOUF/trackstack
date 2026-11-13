@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Light palette -->
-    <color name="background">#F6F1E8</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="on_surface">#14201A</color>
-    <color name="on_background">#14201A</color>
+    <!-- TrackStack dashboard palette: charcoal-green surfaces, mint/coral/gold data accents. -->
+    <color name="background">#0D1117</color>
+    <color name="surface">#161B22</color>
+    <color name="surface_variant">#21262D</color>
+    <color name="on_surface">#E6EDF3</color>
+    <color name="on_background">#E6EDF3</color>
 
-    <color name="primary">#14532D</color>
-    <color name="on_primary">#F6F1E8</color>
-    <color name="primary_container">#D7EDE0</color>
-    <color name="on_primary_container">#0B2E1A</color>
+    <color name="primary">#10B981</color>
+    <color name="on_primary">#04150E</color>
+    <color name="primary_container">#123A2A</color>
+    <color name="on_primary_container">#A7F3D0</color>
 
-    <color name="secondary">#4D5F54</color>
-    <color name="on_secondary">#F6F1E8</color>
-    <color name="surface_variant">#E7EFE9</color>
-    <color name="on_surface_variant">#4D5F54</color>
-    <color name="outline">#B9C9BF</color>
-    <color name="error">#B3261E</color>
-    <color name="on_error">#FFFFFF</color>
+    <color name="secondary">#8B949E</color>
+    <color name="on_secondary">#0D1117</color>
+    <color name="on_surface_variant">#8B949E</color>
+    <color name="outline">#30363D</color>
+
+    <color name="success">#10B981</color>
+    <color name="warning">#F59E0B</color>
+    <color name="error">#F85149</color>
+    <color name="on_error">#2B0B0A</color>
+    <color name="muted">#8B949E</color>
+    <color name="grid">#21262D</color>
 
     <color name="scrim_75">#BF000000</color>
     <color name="scrim_60">#99000000</color>

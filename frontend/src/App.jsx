@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './AuthContext'
 import { C } from './ui'
 import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 import OrgMapPage from './pages/OrgMapPage'
 import OrgDevicesPage from './pages/OrgDevicesPage'
 import GeofencesPage from './pages/GeofencesPage'
@@ -27,11 +28,11 @@ function Layout({ children }) {
   const { user, logout } = useAuth()
   const links = user?.role === 'admin'
     ? [['/admin/map', 'Map'], ['/admin/devices', 'Devices'], ['/admin/orgs', 'Organizations']]
-    : [['/', 'Map'], ['/devices', 'Devices'], ['/geofences', 'Geofences'], ['/trips', 'Trips'], ['/notifications', 'Notifications']]
+    : [['/', 'Dashboard'], ['/map', 'Map'], ['/devices', 'Devices'], ['/geofences', 'Geofences'], ['/trips', 'Trips'], ['/notifications', 'Notifications']]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <nav style={S.nav}>
+      <nav style={S.nav} className="app-nav">
         <span style={S.brand}>Track<span style={{ color: C.accent }}>Stack</span></span>
         {user?.role === 'admin' && <span style={S.badge}>ADMIN</span>}
         <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
@@ -57,7 +58,8 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
 
             {/* Org */}
-            <Route path="/" element={<RequireRole role="org"><Layout><OrgMapPage /></Layout></RequireRole>} />
+            <Route path="/" element={<RequireRole role="org"><Layout><DashboardPage /></Layout></RequireRole>} />
+            <Route path="/map" element={<RequireRole role="org"><Layout><OrgMapPage /></Layout></RequireRole>} />
             <Route path="/devices" element={<RequireRole role="org"><Layout><OrgDevicesPage /></Layout></RequireRole>} />
             <Route path="/geofences" element={<RequireRole role="org"><Layout><GeofencesPage /></Layout></RequireRole>} />
             <Route path="/trips" element={<RequireRole role="org"><Layout><TripsPage /></Layout></RequireRole>} />
@@ -78,13 +80,16 @@ export default function App() {
 
 const S = {
   nav: { display: 'flex', alignItems: 'center', gap: 12, padding: '0 20px', height: 58,
-    background: C.surface, borderBottom: `1px solid ${C.border}`, flexShrink: 0 },
-  brand: { fontWeight: 800, fontSize: 17, letterSpacing: .2 },
+    background: C.surface, borderBottom: `1px solid ${C.border}`, flexShrink: 0,
+    overflowX: 'auto' },
+  brand: { fontWeight: 800, fontSize: 17, letterSpacing: .2, flexShrink: 0 },
   badge: { fontSize: 10, fontWeight: 700, letterSpacing: 1, color: C.accent,
-    background: 'rgba(124,108,255,.16)', padding: '3px 8px', borderRadius: 999 },
+    background: C.accentSoft, padding: '3px 8px', borderRadius: 999 },
   link: { color: C.muted, textDecoration: 'none', fontSize: 14, fontWeight: 600,
-    padding: '7px 14px', borderRadius: 999 },
-  linkActive: { color: '#fff', background: 'rgba(124,108,255,.16)' },
+    padding: '7px 14px', borderRadius: 8, transition: 'background .15s, color .15s',
+    whiteSpace: 'nowrap', flexShrink: 0 },
+  linkActive: { color: C.text, background: C.surface2 },
   logout: { marginLeft: 'auto', background: 'transparent', border: `1px solid ${C.border}`,
-    color: C.muted, cursor: 'pointer', fontSize: 13, padding: '7px 14px', borderRadius: 999 },
+    color: C.muted, cursor: 'pointer', fontSize: 13, padding: '7px 14px', borderRadius: 999,
+    whiteSpace: 'nowrap', flexShrink: 0 },
 }

@@ -30,7 +30,7 @@ function markerIcon(color, isFollowing) {
   const ring = isFollowing ? `0 0 0 4px #ffffff, 0 0 0 6px ${color}, 0 0 12px ${color}` : `0 0 0 2px ${color}, 0 0 10px ${color}`
   return L.divIcon({
     className: '',
-    html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2.5px solid #0b0e14;box-shadow:${ring}"></div>`,
+    html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2.5px solid ${C.bg};box-shadow:${ring}"></div>`,
     iconSize: [16, 16], iconAnchor: [8, 8],
   })
 }
@@ -67,7 +67,7 @@ export default function DeviceMap({ devices, subtitle }) {
                   onClick={() => setFollowId(isFollowing ? null : d.id)}
                   style={{
                     width: '100%', padding: '7px 10px', borderRadius: 999, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    border: 'none', background: isFollowing ? '#ef4444' : '#7c6cff', color: '#fff',
+                    border: 'none', background: isFollowing ? C.danger : C.accent, color: isFollowing ? '#fff' : '#04150E',
                   }}>
                   {isFollowing ? 'Stop following' : 'Follow'}
                 </button>
@@ -93,7 +93,7 @@ export default function DeviceMap({ devices, subtitle }) {
             title="Stop following"
             style={{
               padding: '0 14px', height: 42, borderRadius: 12, border: `1px solid ${C.border}`,
-              background: C.surface, color: '#ef4444', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              background: C.surface, color: C.danger, cursor: 'pointer', fontSize: 13, fontWeight: 600,
               boxShadow: '0 4px 20px rgba(0,0,0,.35)',
             }}>
             Stop following

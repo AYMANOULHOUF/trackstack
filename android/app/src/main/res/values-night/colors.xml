@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark palette: same brand green, lifted to mint for contrast -->
-    <color name="background">#0D1411</color>
-    <color name="surface">#141D18</color>
-    <color name="on_surface">#C9D6CD</color>
-    <color name="on_background">#C9D6CD</color>
+    <!-- The app is dark-only: night and day resolve to the same dashboard palette. -->
+    <color name="background">#0D1117</color>
+    <color name="surface">#161B22</color>
+    <color name="surface_variant">#21262D</color>
+    <color name="on_surface">#E6EDF3</color>
+    <color name="on_background">#E6EDF3</color>
 
-    <color name="primary">#7BD3A0</color>
-    <color name="on_primary">#072015</color>
-    <color name="primary_container">#1B4A34</color>
-    <color name="on_primary_container">#C9EBD8</color>
+    <color name="primary">#10B981</color>
+    <color name="on_primary">#04150E</color>
+    <color name="primary_container">#123A2A</color>
+    <color name="on_primary_container">#A7F3D0</color>
 
-    <color name="secondary">#A9C0B1</color>
-    <color name="on_secondary">#0C1A12</color>
-    <color name="surface_variant">#1D2A23</color>
-    <color name="on_surface_variant">#98AC9F</color>
-    <color name="outline">#374A3F</color>
-    <color name="error">#F08A8A</color>
-    <color name="on_error">#1A1010</color>
+    <color name="secondary">#8B949E</color>
+    <color name="on_secondary">#0D1117</color>
+    <color name="on_surface_variant">#8B949E</color>
+    <color name="outline">#30363D</color>
+
+    <color name="success">#10B981</color>
+    <color name="warning">#F59E0B</color>
+    <color name="error">#F85149</color>
+    <color name="on_error">#2B0B0A</color>
+    <color name="muted">#8B949E</color>
+    <color name="grid">#21262D</color>
 
     <color name="scrim_75">#BF000000</color>
     <color name="scrim_60">#99000000</color>

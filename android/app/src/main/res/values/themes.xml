@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Base.Theme.TrackProj" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.TrackProj" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorPrimaryContainer">@color/primary_container</item>
@@ -20,13 +20,12 @@
         <item name="colorError">@color/error</item>
         <item name="colorOnError">@color/on_error</item>
 
+        <item name="android:windowBackground">@color/background</item>
         <item name="android:statusBarColor">@color/background</item>
         <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="Theme.TrackProj" parent="Base.Theme.TrackProj">
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-    </style>
+    <style name="Theme.TrackProj" parent="Base.Theme.TrackProj" />
 
 </resources>

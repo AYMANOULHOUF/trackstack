@@ -109,10 +109,10 @@ export default function AdminDevicesPage() {
             return (
               <div key={o.id} onClick={() => setAssign({ ...assign, orgIds: toggle(assign.orgIds, o.id) })}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12,
-                  cursor: 'pointer', background: on ? 'rgba(124,108,255,.16)' : C.surface2,
+                  cursor: 'pointer', background: on ? C.accentSoft : C.surface2,
                   border: `1px solid ${on ? C.accent : C.border}` }}>
                 <div style={{ width: 18, height: 18, borderRadius: 6, border: `2px solid ${on ? C.accent : C.muted}`,
-                  background: on ? C.accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}>{on ? '✓' : ''}</div>
+                  background: on ? C.accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#04150E', fontSize: 12 }}>{on ? '✓' : ''}</div>
                 <span style={{ fontSize: 14 }}>{o.name}</span>
               </div>
             )
