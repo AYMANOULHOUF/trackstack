@@ -24,6 +24,9 @@ pgdata/
 .DS_Store
 Thumbs.db
 
+# IDE
+.idea/
+
 # Android / Gradle build artifacts
 android/build/
 android/app/build/

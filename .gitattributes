@@ -1,0 +1,18 @@
+# Keep line endings consistent across Linux/Windows checkouts.
+# Stored as LF in the repository and checked out as LF everywhere, so a
+# Windows round-trip can no longer rewrite every file with CRLF.
+* text=auto eol=lf
+
+# Binaries (never normalise these)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.jar  binary
+*.docx binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.zip  binary
