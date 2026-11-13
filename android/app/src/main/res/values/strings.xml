@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TrackProj</string>
+    <string name="app_name">TrackStack</string>
 
     <string name="toggle_map_theme">Toggle map theme</string>
     <string name="zoom_in">Zoom in</string>
@@ -20,8 +20,8 @@
     <string name="retry">Retry</string>
 
     <string name="location_needed">Location access needed</string>
-    <string name="permission_body">TrackProj needs location access to track this device. Please allow it to continue.</string>
-    <string name="permission_off_body">Location permission is turned off. Open settings and allow location to use TrackProj.</string>
+    <string name="permission_body">TrackStack needs location access to track this device. Please allow it to continue.</string>
+    <string name="permission_off_body">Location permission is turned off. Open settings and allow location to use TrackStack.</string>
     <string name="grant_permission">Grant permission</string>
     <string name="open_settings">Open settings</string>
 </resources>
