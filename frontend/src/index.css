@@ -29,7 +29,18 @@ body {
 }
 
 .app-nav::-webkit-scrollbar { display: none; }
-.app-nav { scrollbar-width: none; }
+.app-nav { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+
+/* Right-edge fade, shown only while the nav still has hidden links. */
+.app-nav-fade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 38px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(22, 27, 34, 0), #161B22 62%);
+}
 
 /* Dashboard grid — 5-card template on desktop, stacked cards on phones. */
 .dash-grid {
@@ -53,6 +64,16 @@ body {
 @media (max-width: 640px) {
   .dash-grid { gap: 10px; }
   .dash-controls { margin-left: 0 !important; }
+  .dash-chart-range { display: none; }
+  .dash-chart-head { flex-wrap: wrap !important; row-gap: 6px !important; }
+  .dash-chart-legend { margin-left: 0 !important; width: 100%; }
+  .dash-events th, .dash-events td { padding-left: 12px !important; padding-right: 12px !important; }
+
+  /* Six links cannot fit on a phone: keep them compact and scrollable. */
+  .app-nav { gap: 8px !important; padding: 0 12px !important; height: 52px !important; }
+  .app-nav > span:first-child { font-size: 15px !important; }
+  .app-nav a { padding: 6px 10px !important; font-size: 13px !important; }
+  .app-nav button { padding: 6px 11px !important; font-size: 12px !important; }
 }
 
 

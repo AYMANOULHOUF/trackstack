@@ -350,13 +350,13 @@ export default function DashboardPage() {
 
             {/* telemetry chart */}
             <Card className="dash-span-8" style={{ padding: 16, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 6 }}>
+              <div className="dash-chart-head" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 6 }}>
                 <div>
                   <div style={{ fontSize: 10.5, letterSpacing: .8, textTransform: 'uppercase', color: C.muted,
                     fontWeight: 700 }}>Telemetry</div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>Speed &amp; fix accuracy</div>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: 14, alignItems: 'center' }}>
+                <div className="dash-chart-legend" style={{ marginLeft: 'auto', display: 'flex', gap: 14, alignItems: 'center' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: C.muted }}>
                     <span style={{ width: 14, height: 2, background: C.accent, borderRadius: 2 }} />
                     Speed km/h
@@ -381,14 +381,20 @@ export default function DashboardPage() {
                   />
                 )}
 
-              <div style={{ display: 'flex', gap: 18, marginTop: 8, color: C.muted, fontSize: 11.5,
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px', marginTop: 8,
+                color: C.muted, fontSize: 11.5,
                 borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
-                <span>Peak {chartPoints.length ? Math.round(Math.max(...chartPoints.map(p => p.speed))) : 0} km/h</span>
-                <span>Avg {chartPoints.length
+                <span style={{ whiteSpace: 'nowrap' }}>Peak {chartPoints.length ? Math.round(Math.max(...chartPoints.map(p => p.speed))) : 0} km/h</span>
+                <span style={{ whiteSpace: 'nowrap' }}>Avg {chartPoints.length
                   ? Math.round(chartPoints.reduce((s, p) => s + p.speed, 0) / chartPoints.length)
                   : 0} km/h</span>
-                <span style={{ marginLeft: 'auto' }}>
-                  {points.length ? `${points.length} fixes · ${clock(points[0].recorded_at)} → ${clock(points[points.length - 1].recorded_at)}` : 'No data'}
+                <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                  {points.length ? `${points.length} fixes` : 'No data'}
+                  {points.length > 0 && (
+                    <span className="dash-chart-range">
+                      {` · ${clock(points[0].recorded_at)} → ${clock(points[points.length - 1].recorded_at)}`}
+                    </span>
+                  )}
                 </span>
               </div>
             </Card>
@@ -416,7 +422,7 @@ export default function DashboardPage() {
                 <Chip>{events.length}</Chip>
               } />
               <div style={{ overflow: 'auto', maxHeight: 320, marginTop: 10 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                <table className="dash-events" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
                   <thead>
                     <tr style={{ color: C.muted, textAlign: 'left', fontSize: 10.5,
                       textTransform: 'uppercase', letterSpacing: .6 }}>

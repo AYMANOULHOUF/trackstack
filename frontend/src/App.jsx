@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './AuthContext'
@@ -26,24 +27,45 @@ function RequireRole({ role, children }) {
 
 function Layout({ children }) {
   const { user, logout } = useAuth()
+  const navRef = useRef(null)
+  const [navMore, setNavMore] = useState(false)
   const links = user?.role === 'admin'
     ? [['/admin/map', 'Map'], ['/admin/devices', 'Devices'], ['/admin/orgs', 'Organizations']]
     : [['/', 'Dashboard'], ['/map', 'Map'], ['/devices', 'Devices'], ['/geofences', 'Geofences'], ['/trips', 'Trips'], ['/notifications', 'Notifications']]
 
+  // On phones the six links do not fit, so the bar scrolls. Only show the
+  // edge fade while there is actually something hidden to the right.
+  useEffect(() => {
+    const el = navRef.current
+    if (!el) return
+    const measure = () => setNavMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 8)
+    measure()
+    el.addEventListener('scroll', measure, { passive: true })
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', measure)
+      ro.disconnect()
+    }
+  }, [])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <nav style={S.nav} className="app-nav">
-        <span style={S.brand}>Track<span style={{ color: C.accent }}>Stack</span></span>
-        {user?.role === 'admin' && <span style={S.badge}>ADMIN</span>}
-        <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
-          {links.map(([to, label]) => (
-            <NavLink key={to} to={to} end style={({ isActive }) => ({
-              ...S.link, ...(isActive ? S.linkActive : {}),
-            })}>{label}</NavLink>
-          ))}
-        </div>
-        <button onClick={logout} style={S.logout}>Sign out</button>
-      </nav>
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <nav ref={navRef} style={S.nav} className="app-nav">
+          <span style={S.brand}>Track<span style={{ color: C.accent }}>Stack</span></span>
+          {user?.role === 'admin' && <span style={S.badge}>ADMIN</span>}
+          <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
+            {links.map(([to, label]) => (
+              <NavLink key={to} to={to} end style={({ isActive }) => ({
+                ...S.link, ...(isActive ? S.linkActive : {}),
+              })}>{label}</NavLink>
+            ))}
+          </div>
+          <button onClick={logout} style={S.logout}>Sign out</button>
+        </nav>
+        {navMore && <div className="app-nav-fade" aria-hidden="true" />}
+      </div>
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>{children}</div>
     </div>
   )
