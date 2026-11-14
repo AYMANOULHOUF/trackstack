@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './AuthContext'
-import { C } from './ui'
+import { C, Splash } from './ui'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import OrgMapPage from './pages/OrgMapPage'
@@ -17,7 +17,8 @@ import AdminMapPage from './pages/AdminMapPage'
 const qc = new QueryClient()
 
 function RequireRole({ role, children }) {
-  const { user } = useAuth()
+  const { user, checking } = useAuth()
+  if (checking) return <Splash />
   if (!user) return <Navigate to="/login" replace />
   if (role && user.role !== role) {
     return <Navigate to={user.role === 'admin' ? '/admin/devices' : '/'} replace />

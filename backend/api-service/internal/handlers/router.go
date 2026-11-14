@@ -41,6 +41,10 @@ func NewRouter(s *Server) http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.RequireJWT(s.JWT))
 
+		// Caller identity: used by the dashboard to validate a stored session
+		// and to pick the right shell (admin vs organization).
+		r.Get("/v1/me", s.Me)
+
 		r.Get("/v1/live", s.LiveWS)
 
 		// Devices — listing + edits are role-scoped inside the handlers.

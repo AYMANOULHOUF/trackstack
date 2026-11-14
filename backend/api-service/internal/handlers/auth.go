@@ -56,7 +56,30 @@ type refreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// POST /v1/auth/refresh — exchange a refresh token for a new access token.
+// GET /v1/me - identity of the caller, derived from the access token. The
+// dashboard uses it to validate a stored session and to choose the admin or
+// organization shell; the role never has to be trusted from the browser.
+func (s *Server) Me(w http.ResponseWriter, r *http.Request) {
+	userID, _ := r.Context().Value(auth.CtxUserID).(string)
+	orgID, _ := r.Context().Value(auth.CtxOrgID).(string)
+	isAdmin, _ := r.Context().Value(auth.CtxIsAdmin).(bool)
+
+	role := "org"
+	if isAdmin {
+		role = "admin"
+	}
+	resp := map[string]interface{}{
+		"user_id":  userID,
+		"role":     role,
+		"is_admin": isAdmin,
+	}
+	if orgID != "" {
+		resp["org_id"] = orgID
+	}
+	writeJSON(w, http.StatusOK, resp)
+}
+
+// POST /v1/auth/refresh - exchange a refresh token for a new access token.
 func (s *Server) Refresh(w http.ResponseWriter, r *http.Request) {
 	var req refreshRequest
 	if err := decodeJSON(r, &req); err != nil {

@@ -35,6 +35,19 @@ export const STATUS_LABEL = {
   unknown: 'No data',
 }
 
+// Shown while a stored token is being validated against the API, so a stale
+// session never flashes protected data or the login form.
+export function Splash({ label = 'Checking session…' }) {
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: C.bg, color: C.muted, fontSize: 14, gap: 10 }}>
+      <span style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${C.border}`,
+        borderTopColor: C.accent, display: 'inline-block', animation: 'spin .7s linear infinite' }} />
+      {label}
+    </div>
+  )
+}
+
 export function Card({ children, style, ...rest }) {
   return <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
     boxShadow: '0 1px 0 rgba(255,255,255,.02), 0 8px 24px rgba(0,0,0,.28)', ...style }} {...rest}>{children}</div>

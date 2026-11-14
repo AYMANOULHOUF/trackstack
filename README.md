@@ -153,7 +153,7 @@ Grant location and notification permissions, then enroll the device.
 | Public | `POST /v1/auth/login`, `POST /v1/auth/refresh`, `POST /v1/enroll`, `GET /healthz` |
 | Device token | `POST /v1/positions`, `POST /v1/tracking-state` |
 | Gateway | `POST /v1/gateway/positions` (requires `X-Gateway-Secret`) |
-| Dashboard (JWT) | `GET /v1/live` (WebSocket), `/v1/devices`, `/v1/positions`, `/v1/geofences`, `/v1/trips`, `/v1/activity`, `/v1/notifications` |
+| Dashboard (JWT) | `GET /v1/me` (caller role/org), `GET /v1/live` (WebSocket), `/v1/devices`, `/v1/positions`, `/v1/geofences`, `/v1/trips`, `/v1/activity`, `/v1/notifications` |
 | Admin only | `/v1/orgs`, `PUT /v1/devices/{id}/orgs`, `POST /v1/devices/{id}/revoke-token` |
 
 ---
