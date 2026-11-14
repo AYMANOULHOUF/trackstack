@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api'
-import { C, Card, Btn, Field, Chip, Dot, Modal, STATUS_COLOR, STATUS_LABEL } from '../ui'
+import { C, Card, Btn, Field, Chip, Dot, Modal, Select, STATUS_COLOR, STATUS_LABEL } from '../ui'
 
 export default function AdminDevicesPage() {
   const qc = useQueryClient()
   const [assign, setAssign] = useState(null)
   const [rename, setRename] = useState(null)
+  const [create, setCreate] = useState(null) // { name, type, orgIds, token?, deviceId?, error? }
+  const [copied, setCopied] = useState(false)
 
   const { data: devices = [], isLoading, isFetching } = useQuery({
     queryKey: ['devices'], queryFn: () => api.get('/devices').then(r => r.data), refetchInterval: 20_000,
@@ -23,6 +25,35 @@ export default function AdminDevicesPage() {
   const saveAssign = useMutation({
     mutationFn: ({ id, orgIds }) => api.put(`/devices/${id}/orgs`, { org_ids: [...orgIds] }),
     onSuccess: () => { setAssign(null); qc.invalidateQueries({ queryKey: ['devices'] }); qc.invalidateQueries({ queryKey: ['orgs'] }) },
+  })
+
+  // Enrol a device from the dashboard, then put it straight into the chosen
+  // organizations in the same step. The API only returns the token once, so the
+  // modal switches to a "copy it now" state instead of closing.
+  const createDevice = useMutation({
+    mutationFn: async ({ name, type, orgIds }) => {
+      const { data } = await api.post('/enroll', { name, type })
+      let assignFailed = false
+      if (orgIds.size > 0) {
+        try {
+          await api.put(`/devices/${data.id}/orgs`, { org_ids: [...orgIds] })
+        } catch {
+          assignFailed = true
+        }
+      }
+      return { ...data, assignFailed }
+    },
+    onSuccess: (data) => {
+      setCopied(false)
+      // If the modal was dismissed while the request was in flight, do not
+      // resurrect it with the token.
+      setCreate(c => c ? { ...c, token: data.api_token, deviceId: data.id, assignFailed: data.assignFailed } : c)
+      qc.invalidateQueries({ queryKey: ['devices'] })
+      qc.invalidateQueries({ queryKey: ['orgs'] })
+    },
+    onError: (e) => setCreate(c => c ? ({
+      ...c, error: e.response?.data?.error ?? 'Could not create the device',
+    }) : c),
   })
   const saveRename = useMutation({
     mutationFn: ({ id, name, externalId }) => {
@@ -43,6 +74,24 @@ export default function AdminDevicesPage() {
     if (n.has(id)) n.delete(id)
     else n.add(id)
     return n
+  }
+
+  const openCreate = () => {
+    setCopied(false)
+    setCreate({ name: '', type: 'phone', orgIds: new Set(), error: '' })
+  }
+  const closeCreate = () => {
+    setCreate(null)
+    setCopied(false)
+  }
+  const copyToken = async () => {
+    if (!create?.token) return
+    try {
+      await navigator.clipboard.writeText(create.token)
+    } catch {
+      // Clipboard can be blocked outside a secure context; the token is still selectable.
+    }
+    setCopied(true)
   }
 
   const Row = (d) => (
@@ -77,10 +126,13 @@ export default function AdminDevicesPage() {
             Every enrolled device. Assign pending devices to one or more organizations.
           </p>
         </div>
-        <Btn variant="soft" onClick={rescan} disabled={isFetching}
-          style={{ flexShrink: 0, opacity: isFetching ? .6 : 1, cursor: isFetching ? 'default' : 'pointer' }}>
-          {isFetching ? 'Rescanning…' : '\u21bb Rescan'}
-        </Btn>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <Btn onClick={openCreate}>+ New device</Btn>
+          <Btn variant="soft" onClick={rescan} disabled={isFetching}
+            style={{ opacity: isFetching ? .6 : 1, cursor: isFetching ? 'default' : 'pointer' }}>
+            {isFetching ? 'Rescanning…' : '\u21bb Rescan'}
+          </Btn>
+        </div>
       </div>
 
       {isLoading ? <p style={{ color: C.muted }}>Loading…</p> : (
@@ -100,6 +152,98 @@ export default function AdminDevicesPage() {
           {devices.length === 0 && <p style={{ color: C.muted }}>No devices enrolled yet.</p>}
         </>
       )}
+
+      <Modal open={!!create} onClose={closeCreate} title={create?.token ? 'Device created' : 'New device'}>
+        {create?.token ? (
+          <>
+            <p style={{ color: C.muted, fontSize: 13, margin: '0 0 12px' }}>
+              <strong style={{ color: C.text }}>{create.name}</strong> is enrolled. Copy the API token now —
+              it is shown only once.
+            </p>
+
+            <code style={{ display: 'block', padding: '11px 12px', borderRadius: 8,
+              background: C.surface2, border: `1px solid ${C.border}`, color: C.text,
+              fontSize: 12, fontFamily: 'monospace', wordBreak: 'break-all' }}>{create.token}</code>
+
+            <div style={{ marginTop: 10 }}>
+              <Btn variant="soft" onClick={copyToken}>{copied ? 'Copied ✓' : 'Copy token'}</Btn>
+            </div>
+
+            {create.assignFailed && (
+              <p style={{ color: C.warn, fontSize: 12.5, margin: '12px 0 0' }}>
+                The device was created but could not be assigned — use Assign to add it to an organization.
+              </p>
+            )}
+
+            <p style={{ color: C.muted, fontSize: 12, margin: '12px 0 0' }}>
+              {create.type === 'hardware'
+                ? 'Set the hardware ID (IMEI or serial) with Edit so the protocol gateway can match this tracker.'
+                : 'Paste this token into the TrackStack app, or send it as a Bearer token to POST /v1/positions.'}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
+              <Btn onClick={closeCreate}>Done</Btn>
+            </div>
+          </>
+        ) : (
+          <>
+            <label style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Name</label>
+            <Field autoFocus value={create?.name ?? ''} placeholder="e.g. Van unit 12"
+              onChange={e => setCreate({ ...create, name: e.target.value, error: '' })}
+              style={{ margin: '6px 0 14px' }} />
+
+            <label style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Type</label>
+            <Select value={create?.type ?? 'phone'}
+              onChange={e => setCreate({ ...create, type: e.target.value })}
+              style={{ margin: '6px 0 4px', width: '100%' }}>
+              <option value="phone">Phone — TrackStack app</option>
+              <option value="hardware">Hardware — GT06 / HTTP tracker</option>
+            </Select>
+            <p style={{ color: C.muted, fontSize: 11.5, margin: '0 0 14px' }}>
+              {create?.type === 'hardware'
+                ? 'You will set the IMEI or serial after creating it.'
+                : 'Phones enrol themselves on first launch — create one here only to assign it up front.'}
+            </p>
+
+            <label style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>
+              Assign to organizations <span style={{ fontWeight: 400 }}>(optional)</span>
+            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220,
+              overflowY: 'auto', marginTop: 6 }}>
+              {orgs.map(o => {
+                const on = create?.orgIds.has(o.id)
+                return (
+                  <div key={o.id} onClick={() => setCreate({ ...create, orgIds: toggle(create.orgIds, o.id) })}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12,
+                      cursor: 'pointer', background: on ? C.accentSoft : C.surface2,
+                      border: `1px solid ${on ? C.accent : C.border}` }}>
+                    <div style={{ width: 18, height: 18, borderRadius: 6, border: `2px solid ${on ? C.accent : C.muted}`,
+                      background: on ? C.accent : 'transparent', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', color: '#04150E', fontSize: 12 }}>{on ? '✓' : ''}</div>
+                    <span style={{ fontSize: 14 }}>{o.name}</span>
+                  </div>
+                )
+              })}
+              {orgs.length === 0 && (
+                <p style={{ color: C.muted, fontSize: 13, margin: 0 }}>
+                  No organizations yet — the device will wait as pending until you assign it.
+                </p>
+              )}
+            </div>
+
+            {create?.error && <p style={{ color: C.danger, fontSize: 13, margin: '14px 0 0' }}>{create.error}</p>}
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
+              <Btn variant="ghost" onClick={closeCreate}>Cancel</Btn>
+              <Btn disabled={!create?.name?.trim() || createDevice.isPending}
+                style={{ opacity: !create?.name?.trim() || createDevice.isPending ? .55 : 1 }}
+                onClick={() => createDevice.mutate({
+                  name: create.name.trim(), type: create.type, orgIds: create.orgIds,
+                })}>{createDevice.isPending ? 'Creating…' : 'Create device'}</Btn>
+            </div>
+          </>
+        )}
+      </Modal>
 
       <Modal open={!!assign} onClose={() => setAssign(null)} title={`Assign "${assign?.device.name}"`}>
         <p style={{ color: C.muted, fontSize: 13, margin: '0 0 14px' }}>Select the organizations that can see this device.</p>
